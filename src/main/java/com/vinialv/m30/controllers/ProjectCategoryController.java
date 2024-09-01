@@ -1,15 +1,17 @@
 package com.vinialv.m30.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.vinialv.m30.entities.ProjectCategory;
 import com.vinialv.m30.services.ProjectCategoryService;
@@ -30,22 +32,23 @@ public class ProjectCategoryController {
   }
 
   @GetMapping("/{id}")
-  public ProjectCategory findById(@PathVariable("id") Long id) {
-    return service.findById(id);
+  public ResponseEntity<ProjectCategory> findById(@PathVariable("id") Long id) {
+    Optional<ProjectCategory> projectCategory = service.findById(id);
+    return projectCategory.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PostMapping
   public void save(@RequestBody ProjectCategory projectCategory) {
-    service.save(projectCategory);
+    service.createProjectCategory(projectCategory);
   }
 
   @PutMapping("/{id}")
   public void update(@PathVariable("id") Long id, @RequestBody ProjectCategory projectCategory) {
-    service.update(id, projectCategory);
+    service.updateProjectCategory(id, projectCategory);
   }
 
   @DeleteMapping("/{id}")
   public void delete(@PathVariable("id") Long id) {
-    service.delete(id);
+    service.deleteProjectCategory(id);
   }
 }

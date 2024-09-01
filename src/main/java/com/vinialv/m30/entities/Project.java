@@ -50,10 +50,6 @@ public class Project {
   @JoinColumn(name = "city_id", nullable = false)
   private City city;
   
-  @ManyToOne
-  @JoinColumn(name = "state_id", nullable = false)
-  private State state;
-  
   @Column(nullable = false, columnDefinition = "char(1) default 'T'")
   private String visibility;
   

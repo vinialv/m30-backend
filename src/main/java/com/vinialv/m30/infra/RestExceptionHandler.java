@@ -1,7 +1,7 @@
 package com.vinialv.m30.infra;
 
-import com.vinialv.m30.exceptions.ProjectCategoryNotFoundException;
-import com.vinialv.m30.exceptions.ProjectCategoryNonActiveFieldsException;
+import com.vinialv.m30.exceptions.NotFoundException;
+import com.vinialv.m30.exceptions.NonActiveFieldsException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,14 +12,14 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-  @ExceptionHandler(ProjectCategoryNotFoundException.class)
-  public ResponseEntity<RestErrorMessage> eventNotFoundHandler(ProjectCategoryNotFoundException exception) {
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<RestErrorMessage> eventNotFoundHandler(NotFoundException exception) {
     RestErrorMessage response = new RestErrorMessage(HttpStatus.NOT_FOUND, exception.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
   }
 
-  @ExceptionHandler(ProjectCategoryNonActiveFieldsException.class)
-  public ResponseEntity<RestErrorMessage> eventNotFoundHandler(ProjectCategoryNonActiveFieldsException exception) {
+  @ExceptionHandler(NonActiveFieldsException.class)
+  public ResponseEntity<RestErrorMessage> eventNotFoundHandler(NonActiveFieldsException exception) {
     RestErrorMessage response = new RestErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }

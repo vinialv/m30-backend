@@ -1,19 +1,13 @@
 package com.vinialv.m30.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.vinialv.m30.entities.ProjectCategory;
+import com.vinialv.m30.exceptions.NotFoundException;
 import com.vinialv.m30.repositories.ProjectCategoryRepository;
-import com.vinialv.m30.exceptions.ProjectCategoryNotFoundException;
-import com.vinialv.m30.exceptions.ProjectCategoryNonActiveFieldsException;
 
 @Service
 public class ProjectCategoryService {
@@ -24,42 +18,62 @@ public class ProjectCategoryService {
     this.repository = repository;
   }
 
-  @GetMapping
   public List<ProjectCategory> findAll() {
     return repository.findAll();
   }
   
-  @GetMapping("/{id}")
-  public ProjectCategory findById(@PathVariable("id") Long id) {
-    return repository.findById(id).orElseThrow(ProjectCategoryNotFoundException::new);
+  public Optional<ProjectCategory> findById(Long id) {
+    return repository.findById(id);
+  }
+
+    public Optional<ProjectCategory> findByDescription(String description) {
+    return repository.findByDescription(description);
   }
   
-  @PostMapping
-  public void save(@RequestBody ProjectCategory projectCategory) {
-    if (projectCategory.getStatus() == null) {
-      projectCategory.setStatus("A");
+  public void createProjectCategory(ProjectCategory projectCategory) {
+    validateProjectCategory(projectCategory);
+    if (repository.findByDescription(projectCategory.getDescription()).isPresent()) {
+      throw new IllegalArgumentException("Categoria já cadastrada!");
     }
-    if (projectCategory.getDescription() == null) {
-      throw new ProjectCategoryNonActiveFieldsException();
-    } 
+    projectCategory.setStatus(Optional.ofNullable(projectCategory.getStatus()).orElse("A"));
     repository.save(projectCategory);
   }
 
-  @PutMapping("/{id}")
-  public void update(@PathVariable("id") Long id, @RequestBody ProjectCategory projectCategory) {
-    ProjectCategory category = repository.findById(id).orElseThrow(ProjectCategoryNotFoundException::new);
-
-    if (projectCategory.getDescription() == null || projectCategory.getStatus() == null) {
-      throw new ProjectCategoryNonActiveFieldsException();
-
+  public void updateProjectCategory(Long id, ProjectCategory projectCategory) {
+    ProjectCategory existingCategory = repository.findById(id).orElseThrow(() -> new NotFoundException("Categoria não encontrada.")); 
+    if (projectCategory.getId() != null && !projectCategory.getId().equals(id)) {
+      throw new IllegalArgumentException("O campo 'ID' não pode ser atualizado!");
     }
-    repository.save(category);
+    if (projectCategory.getDescription() != null && !projectCategory.getDescription().equals(existingCategory.getDescription())) {
+      if (repository.findByDescription(projectCategory.getDescription()).isPresent()) {
+        throw new IllegalArgumentException("Categoria já cadastrada!");
+      }
+      existingCategory.setDescription(projectCategory.getDescription());
+    }
+    updateProjectCategory(existingCategory, projectCategory);
+    repository.save(existingCategory);
   }
 
-  @DeleteMapping("/{id}")
-  public void delete(@PathVariable("id") Long id) {
-    ProjectCategory category = repository.findById(id).orElseThrow(ProjectCategoryNotFoundException::new);
-    repository.delete(category);
+  public void deleteProjectCategory(Long id) {
+    if (!repository.existsById(id)) {
+      throw new NotFoundException("Não existe categoria com o ID informado!");
+    }
+    repository.deleteById(id);
+  }
+
+  private void validateProjectCategory(ProjectCategory projectCategory) {
+    if (projectCategory.getDescription() == null) {
+      throw new IllegalArgumentException("O campo 'Descrição' deve ser informado!");
+    }
+  }
+
+  private void updateProjectCategory(ProjectCategory existingProjectCategory, ProjectCategory projectCategory) {
+    if (projectCategory.getDescription() != null) {
+      existingProjectCategory.setDescription(projectCategory.getDescription());
+    }
+    if (projectCategory.getStatus() != null) {
+      existingProjectCategory.setStatus(projectCategory.getStatus());
+    }
   }
 
 }
