@@ -1,4 +1,4 @@
-package com.vinialv.m30.entity;
+package com.vinialv.m30.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

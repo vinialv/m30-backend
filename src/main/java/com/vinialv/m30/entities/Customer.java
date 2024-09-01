@@ -1,7 +1,9 @@
-package com.vinialv.m30.entity;
+package com.vinialv.m30.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.hibernate.annotations.Check;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -13,11 +15,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
 @Entity
-@Table(name = "city")
+@Table(name = "customer")
+@Check(constraints = "status IN ('A', 'I')")
 @Data
 @NoArgsConstructor
-public class City {
-  
+public class Customer {
+    
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -25,8 +28,21 @@ public class City {
   @Column(nullable = false)
   private String name;
 
+  @Column(nullable = false, unique = true)
+  private String email;
+
+  @Column(nullable = false)
+  private Long phone;
+
+  @ManyToOne
+  @JoinColumn(name = "city_id", nullable = false)
+  private City city;
+  
   @ManyToOne
   @JoinColumn(name = "state_id", nullable = false)
   private State state;
+
+  @Column(nullable = false, columnDefinition = "char(1) default 'A'")
+  private String status;
 
 }

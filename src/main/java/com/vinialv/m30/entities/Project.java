@@ -1,4 +1,7 @@
-package com.vinialv.m30.entity;
+package com.vinialv.m30.entities;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,25 +18,34 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
 @Entity
-@Table(name = "customer")
-@Check(constraints = "status IN ('A', 'I')")
+@Table(name = "project")
+@Check(constraints = "visibility IN ('A', 'I', 'T')")
 @Data
 @NoArgsConstructor
-public class Customer {
-    
+public class Project {
+  
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   
-  @Column(nullable = false)
+  @Column(unique = true)
   private String name;
-
-  @Column(nullable = false, unique = true)
-  private String email;
-
+  
+  private String details;
+  
   @Column(nullable = false)
-  private Long phone;
+  private LocalDateTime creationDate;
+  
+  private BigDecimal plantSize;
+  
+  @ManyToOne
+  @JoinColumn(name = "category_id", nullable = false)
+  private ProjectCategory projectCategory;
 
+  @ManyToOne
+  @JoinColumn(name = "customer_id", nullable = false)
+  private Customer customer;
+  
   @ManyToOne
   @JoinColumn(name = "city_id", nullable = false)
   private City city;
@@ -41,8 +53,8 @@ public class Customer {
   @ManyToOne
   @JoinColumn(name = "state_id", nullable = false)
   private State state;
-
-  @Column(nullable = false, columnDefinition = "char(1) default 'A'")
-  private String status;
-
+  
+  @Column(nullable = false, columnDefinition = "char(1) default 'T'")
+  private String visibility;
+  
 }
