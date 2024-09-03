@@ -9,14 +9,13 @@ import com.vinialv.m30.entities.Customer;
 import com.vinialv.m30.exceptions.NotFoundException;
 import com.vinialv.m30.repositories.CustomerRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CustomerService {
 
   private final CustomerRepository repository;
-
-  public CustomerService(CustomerRepository repository) {
-    this.repository = repository;
-  }
 
   public List<Customer> findAll() {
     return repository.findAll();

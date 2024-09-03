@@ -10,16 +10,14 @@ import com.vinialv.m30.exceptions.NotFoundException;
 import com.vinialv.m30.repositories.ProjectImageRepository;
 import com.vinialv.m30.repositories.ProjectRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ProjectImageService {
 
   private final ProjectImageRepository repository;
   private final ProjectRepository projectRepository;
-
-  public ProjectImageService(ProjectImageRepository repository, ProjectRepository projectRepository) {
-    this.repository = repository;
-    this.projectRepository = projectRepository;
-  }
 
   public List<ProjectImage> findAll() {
     return repository.findAll();

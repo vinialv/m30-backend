@@ -9,14 +9,13 @@ import com.vinialv.m30.entities.ProjectCategory;
 import com.vinialv.m30.exceptions.NotFoundException;
 import com.vinialv.m30.repositories.ProjectCategoryRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ProjectCategoryService {
 
   private final ProjectCategoryRepository repository;
-
-  public ProjectCategoryService(ProjectCategoryRepository repository) {
-    this.repository = repository;
-  }
 
   public List<ProjectCategory> findAll() {
     return repository.findAll();

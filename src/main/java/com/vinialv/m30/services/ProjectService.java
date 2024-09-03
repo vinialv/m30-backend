@@ -8,14 +8,13 @@ import org.springframework.stereotype.Service;
 import com.vinialv.m30.entities.Project;
 import com.vinialv.m30.repositories.ProjectRepository;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ProjectService {
 
   private final ProjectRepository repository;
-
-  public ProjectService(ProjectRepository repository) {
-    this.repository = repository;
-  }
 
     public List<Project> findAll() {
     return repository.findAll();

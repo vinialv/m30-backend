@@ -16,16 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vinialv.m30.entities.Customer;
 import com.vinialv.m30.services.CustomerService;
 
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/customer")
 public class CustomerController {
 
   private final CustomerService service;
-
-  public CustomerController(CustomerService service) {
-    this.service = service;
-  }
 
   @GetMapping
   public List<Customer> findAll() {

@@ -16,15 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vinialv.m30.entities.Project;
 import com.vinialv.m30.services.ProjectService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/project")
 public class ProjectController {
 
   private final ProjectService service;
-
-  public ProjectController(ProjectService service) {
-    this.service = service;
-  }
 
   @GetMapping
   public List<Project> findAll() {

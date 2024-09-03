@@ -16,15 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.vinialv.m30.entities.ProjectCategory;
 import com.vinialv.m30.services.ProjectCategoryService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/project-category")
 public class ProjectCategoryController {
 
   private final ProjectCategoryService service;
-
-  public ProjectCategoryController(ProjectCategoryService service) {
-    this.service = service;
-  }
 
   @GetMapping
   public List<ProjectCategory> findAll() {

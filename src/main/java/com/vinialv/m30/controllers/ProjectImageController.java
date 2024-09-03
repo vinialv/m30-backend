@@ -16,15 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vinialv.m30.entities.ProjectImage;
 import com.vinialv.m30.services.ProjectImageService;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/project-image")
 public class ProjectImageController {
 
   private final ProjectImageService service;
-
-  public ProjectImageController(ProjectImageService service) {
-    this.service = service;
-  }
 
   @GetMapping
   public List<ProjectImage> findAll() {
