@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.vinialv.m30.entities.ProjectCategory;
 import com.vinialv.m30.exceptions.NotFoundException;
@@ -17,8 +19,8 @@ public class ProjectCategoryService {
 
   private final ProjectCategoryRepository repository;
 
-  public List<ProjectCategory> findAll() {
-    return repository.findAll();
+  public Page<ProjectCategory> findAll(Pageable pageable) {
+    return repository.findAll(pageable);
   }
   
   public Optional<ProjectCategory> findById(Long id) {
