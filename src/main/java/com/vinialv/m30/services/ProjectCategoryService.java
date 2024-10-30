@@ -18,17 +18,41 @@ import lombok.RequiredArgsConstructor;
 public class ProjectCategoryService {
 
   private final ProjectCategoryRepository repository;
+  private static final String ONLY_ACTIVE = "only-active";
+  private static final String ONLY_INACTIVE = "only-inactive";
 
   public Page<ProjectCategory> findAll(Pageable pageable) {
     return repository.findAll(pageable);
   }
   
+  public Page<ProjectCategory> findAll(Pageable pageable, String status, String search) {
+    if (ONLY_ACTIVE.equals(status)) {
+      status = "A";
+    } else if (ONLY_INACTIVE.equals(status)) {
+      status = "I";
+    }
+
+    if (status != null && search != null) {
+      return repository.findByStatusAndDescriptionContaining(status, search, pageable);
+    } else if (status != null) {
+      return repository.findByStatus(status, pageable);
+    } else if (search != null) {
+      return repository.findByDescriptionContaining(search, pageable);
+    } else {
+      return repository.findAll(pageable);
+    }
+  }
+
   public Optional<ProjectCategory> findById(Long id) {
     return repository.findById(id);
   }
 
-    public Optional<ProjectCategory> findByDescription(String description) {
+  public Optional<ProjectCategory> findByDescription(String description) {
     return repository.findByDescription(description);
+  }
+
+  public Page<ProjectCategory> findByDescriptionContaining(String description, Pageable pageable) {
+    return repository.findByDescriptionContaining(description, pageable);
   }
   
   public void createProjectCategory(ProjectCategory projectCategory) {

@@ -9,5 +9,8 @@ import com.vinialv.m30.entities.ProjectCategory;
 
 public interface ProjectCategoryRepository extends JpaRepository<ProjectCategory, Long> {
   Optional<ProjectCategory> findByDescription(String description);
+  Page<ProjectCategory> findByStatusAndDescriptionContaining(String status, String description, Pageable pageable);
+  Page<ProjectCategory> findByStatus(String status, Pageable pageable);
+  Page<ProjectCategory> findByDescriptionContaining(String description, Pageable pageable);
   Page<ProjectCategory> findAll(Pageable pageable);
 }

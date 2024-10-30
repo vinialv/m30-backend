@@ -27,6 +27,7 @@ import com.vinialv.m30.dto.PaginatedResponseDTO;
 import com.vinialv.m30.entities.ProjectCategory;
 import com.vinialv.m30.services.ProjectCategoryService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -37,10 +38,15 @@ public class ProjectCategoryController {
   private final ProjectCategoryService service;
 
   @GetMapping
-  public ResponseEntity<PaginatedResponseDTO<ProjectCategory>> findAll(@RequestParam(defaultValue = "1") int page, @PageableDefault(size = 2) Pageable pageable) {
+  public ResponseEntity<PaginatedResponseDTO<ProjectCategory>> findAll(@RequestParam(defaultValue = "1") int page, 
+                                                                       @RequestParam(required = false) String search,  
+                                                                       @RequestParam(required = false) String status,   
+                                                                       @PageableDefault(size = 10) Pageable pageable) {
+                                                                        
+    System.out.println("PAGE: " + page + " | STATUS: " + status + " | SEARCH: " + search);
+    
     Pageable adjustedPageable = PageRequest.of(Math.max(0, page - 1), pageable.getPageSize());
-    Page<ProjectCategory> pageCategory = service.findAll(adjustedPageable);
-    System.out.println("page: " + page);
+    Page<ProjectCategory> pageCategory = service.findAll(adjustedPageable, status, search);
     String baseUrl = "http://localhost:8080/v1/project-category";
     String first = baseUrl + "?page=1&size=" + pageable.getPageSize();
     String last = baseUrl + "?page=" + pageCategory.getTotalPages() + "&size=" + pageable.getPageSize();
@@ -54,7 +60,7 @@ public class ProjectCategoryController {
     
     int totalPages = pageCategory.getTotalPages();
     int currentPage = pageCategory.getNumber() + 1;    
-    for (int i = 1; i <= Math.min(totalPages, 10); i++) {
+    /*for (int i = 1; i <= Math.min(totalPages, 10); i++) {
       boolean isActive = (i == currentPage);
       metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
     }
@@ -65,7 +71,59 @@ public class ProjectCategoryController {
         boolean isActive = (i == currentPage);
         metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
       }
-    }
+    }*/
+
+    if (currentPage == 1 || currentPage == 2 || currentPage == 3 || currentPage == 4) { 
+      // Exibir as primeiras 7 páginas
+      for (int i = 1; i <= Math.min(7, totalPages); i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+      // Adicionar "..."
+      if (totalPages > 7) {
+          metaLinks.add(new PaginatedLinkDTO(null, "...", false));
+      }
+      // Adicionar as últimas 3 páginas
+      for (int i = Math.max(totalPages - 2, 8); i <= totalPages; i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+  } else if (currentPage >= totalPages - 2 || currentPage >= totalPages - 3 || currentPage >= totalPages - 4) {
+      // Exibir as primeiras 3 páginas
+      for (int i = 1; i <= Math.min(3, totalPages); i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+      // Adicionar "..."
+      if (totalPages > 6) {
+          metaLinks.add(new PaginatedLinkDTO(null, "...", false));
+      }
+      // Adicionar as páginas próximas à antepenúltima
+      for (int i = Math.max(totalPages - 6, 4); i <= totalPages; i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+  } else {
+      // Exibir as primeiras 3 páginas
+      for (int i = 1; i <= 3; i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+      // Adicionar "..."
+      metaLinks.add(new PaginatedLinkDTO(null, "...", false));
+      // Adicionar as páginas próximas à página atual
+      for (int i = Math.max(currentPage - 2, 4); i <= Math.min(currentPage + 2, totalPages - 3); i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+      // Adicionar "..."
+      metaLinks.add(new PaginatedLinkDTO(null, "...", false));
+      // Adicionar as últimas 3 páginas
+      for (int i = Math.max(totalPages - 2, currentPage + 3); i <= totalPages; i++) {
+          boolean isActive = (i == currentPage);
+          metaLinks.add(new PaginatedLinkDTO(baseUrl + "?page=" + i + "&size=" + pageable.getPageSize(), String.valueOf(i), isActive));
+      }
+  }
     
     metaLinks.add(new PaginatedLinkDTO(next, "Next &raquo;", pageCategory.hasNext()));
     
