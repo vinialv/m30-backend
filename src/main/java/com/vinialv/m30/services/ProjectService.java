@@ -3,6 +3,8 @@ package com.vinialv.m30.services;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vinialv.m30.entities.Project;
@@ -16,8 +18,32 @@ public class ProjectService {
 
   private final ProjectRepository repository;
 
-    public List<Project> findAll() {
-    return repository.findAll();
+  private static final String ONLY_ACTIVE = "only-active";
+  private static final String ONLY_TESTING = "only-testing";
+  private static final String ONLY_INACTIVE = "only-inactive";
+
+  public Page<Project> findAll(Pageable pageable) {
+    return repository.findAll(pageable);
+  }
+  
+  public Page<Project> findAll(Pageable pageable, String visibility, String search) {
+    if (ONLY_ACTIVE.equals(visibility)) {
+      visibility = "A";
+    } else if (ONLY_INACTIVE.equals(visibility)) {
+      visibility = "I";
+    } else if (ONLY_TESTING.equals(visibility)) {
+      visibility = "T";
+    }
+
+    if (visibility != null && search != null) {
+      return repository.findByVisibilityAndNameContaining(visibility, search, pageable);
+    } else if (visibility != null) {
+      return repository.findByVisibility(visibility, pageable);
+    } else if (search != null) {
+      return repository.findByNameContaining(search, pageable);
+    } else {
+      return repository.findAll(pageable);
+    }
   }
 
   public Optional<Project> findById(Long id) {
