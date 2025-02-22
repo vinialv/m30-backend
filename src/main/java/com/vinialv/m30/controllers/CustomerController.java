@@ -36,13 +36,19 @@ public class CustomerController {
 
   private final CustomerService service;
 
+
+  @GetMapping("/all")
+  public List<Customer> findAll() {
+    return service.findAll();
+  }
+
   @GetMapping
-  public ResponseEntity<PaginatedResponseDTO<Customer>> findAll(@RequestParam(defaultValue = "1") int page, 
-                                                                @RequestParam(required = false) String search,  
-                                                                @RequestParam(required = false) String status,   
-                                                                @PageableDefault(size = 10) Pageable pageable) {
+  public ResponseEntity<PaginatedResponseDTO<Customer>> findAllPageable(@RequestParam(defaultValue = "1") int page, 
+                                                                        @RequestParam(required = false) String search,  
+                                                                        @RequestParam(required = false) String status,   
+                                                                        @PageableDefault(size = 10) Pageable pageable) {
     Pageable adjustedPageable = PageRequest.of(Math.max(0, page - 1), pageable.getPageSize());
-    Page<Customer> pageCustomer = service.findAll(adjustedPageable, status, search);
+    Page<Customer> pageCustomer = service.findAllPageable(adjustedPageable, status, search);
     String baseUrl = "http://localhost:8080/v1/customer";
     String first = baseUrl + "?page=1&size=" + pageable.getPageSize();
     String last = baseUrl + "?page=" + pageCustomer.getTotalPages() + "&size=" + pageable.getPageSize();

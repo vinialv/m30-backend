@@ -21,11 +21,16 @@ public class CustomerService {
   private static final String ONLY_ACTIVE = "only-active";
   private static final String ONLY_INACTIVE = "only-inactive";
 
-  public Page<Customer> findAll(Pageable pageable) {
+  public List<Customer> findAll() {
+    return repository.findAll();
+  }
+
+
+  public Page<Customer> findAllPageable(Pageable pageable) {
     return repository.findAll(pageable);
   }
   
-  public Page<Customer> findAll(Pageable pageable, String status, String search) {
+  public Page<Customer> findAllPageable(Pageable pageable, String status, String search) {
     if (ONLY_ACTIVE.equals(status)) {
       status = "A";
     } else if (ONLY_INACTIVE.equals(status)) {

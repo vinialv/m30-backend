@@ -21,11 +21,15 @@ public class ProjectCategoryService {
   private static final String ONLY_ACTIVE = "only-active";
   private static final String ONLY_INACTIVE = "only-inactive";
 
-  public Page<ProjectCategory> findAll(Pageable pageable) {
+  public List<ProjectCategory> findAll() {
+    return repository.findAll();
+  }
+
+  public Page<ProjectCategory> findAllPageable(Pageable pageable) {
     return repository.findAll(pageable);
   }
   
-  public Page<ProjectCategory> findAll(Pageable pageable, String status, String search) {
+  public Page<ProjectCategory> findAllPageable(Pageable pageable, String status, String search) {
     if (ONLY_ACTIVE.equals(status)) {
       status = "A";
     } else if (ONLY_INACTIVE.equals(status)) {

@@ -36,13 +36,19 @@ public class ProjectCategoryController {
 
   private final ProjectCategoryService service;
 
+
+  @GetMapping("/all")
+  public List<ProjectCategory> findAll() {
+    return service.findAll();
+  }
+
   @GetMapping
-  public ResponseEntity<PaginatedResponseDTO<ProjectCategory>> findAll(@RequestParam(defaultValue = "1") int page, 
-                                                                       @RequestParam(required = false) String search,  
-                                                                       @RequestParam(required = false) String status,   
-                                                                       @PageableDefault(size = 10) Pageable pageable) {
+  public ResponseEntity<PaginatedResponseDTO<ProjectCategory>> findAllPageable(@RequestParam(defaultValue = "1") int page, 
+                                                                               @RequestParam(required = false) String search,  
+                                                                               @RequestParam(required = false) String status,   
+                                                                               @PageableDefault(size = 10) Pageable pageable) {
     Pageable adjustedPageable = PageRequest.of(Math.max(0, page - 1), pageable.getPageSize());
-    Page<ProjectCategory> pageCategory = service.findAll(adjustedPageable, status, search);
+    Page<ProjectCategory> pageCategory = service.findAllPageable(adjustedPageable, status, search);
     String baseUrl = "http://localhost:8080/v1/project-category";
     String first = baseUrl + "?page=1&size=" + pageable.getPageSize();
     String last = baseUrl + "?page=" + pageCategory.getTotalPages() + "&size=" + pageable.getPageSize();
