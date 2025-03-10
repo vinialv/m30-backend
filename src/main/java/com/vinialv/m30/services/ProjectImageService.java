@@ -1,15 +1,24 @@
 package com.vinialv.m30.services;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.vinialv.m30.config.FileStorageProperties;
+import com.vinialv.m30.entities.Project;
 import com.vinialv.m30.entities.ProjectImage;
 import com.vinialv.m30.exceptions.NotFoundException;
 import com.vinialv.m30.repositories.ProjectImageRepository;
 import com.vinialv.m30.repositories.ProjectRepository;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,6 +27,14 @@ public class ProjectImageService {
 
   private final ProjectImageRepository repository;
   private final ProjectRepository projectRepository;
+  private final FileStorageProperties fileStorageProperties;
+  
+  private Path fileStorageLocation;  
+  @PostConstruct
+  private void initFileStorageLocation() {
+    this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir())
+        .toAbsolutePath().normalize();
+  }
 
   public List<ProjectImage> findAll() {
     return repository.findAll();
@@ -34,9 +51,35 @@ public class ProjectImageService {
     return repository.findByProjectId(projectId);
   }
   
-  public void createImage(ProjectImage projectImage) {
-    validateProjectImage(projectImage);
-    repository.save(projectImage);
+  public void createImage(Long projectId, String title, String details, String visibility, MultipartFile file) {
+    List<String> allowedTypes = Arrays.asList("image/webp", "image/avif", "image/png", "image/jpeg", "image/svg+xml");
+    if (!allowedTypes.contains(file.getContentType())) {
+      throw new IllegalArgumentException("Tipo de imagem não permitido. Apenas .webp, .avif, .png, .jpg e .svg são aceitos.");
+    }
+    Project project = projectRepository.findById(projectId).orElseThrow(() -> new NotFoundException("Projeto não encontrado!"));
+    try {
+      String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+      Path targetLocation = fileStorageLocation.resolve(fileName);
+      file.transferTo(targetLocation);
+
+      String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+        .path("/v1/project-image/")
+        .path(project.getName())
+        .path("/")
+        .path(fileName)
+        .toUriString();
+      
+      ProjectImage projectImage = new ProjectImage();
+      projectImage.setTitle(title);
+      projectImage.setDetails(details);
+      projectImage.setVisibility(visibility);
+      projectImage.setUrl(fileDownloadUri);
+      projectImage.setProject(project);
+
+      repository.save(projectImage);      
+    } catch (Exception e) {
+      throw new RuntimeException("Erro ao salvar arquivo: " + e.getMessage());
+    }
   }
 
   public void updateImage(Long id, ProjectImage projectImage) {
