@@ -40,7 +40,8 @@ public class ProjectImageController {
   private final ProjectImageService service;
   private final FileStorageProperties fileStorageProperties;
 
-    private Path fileStorageLocation;  
+  private Path fileStorageLocation;  
+
   @PostConstruct
   private void initFileStorageLocation() {
     this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir())
@@ -69,8 +70,8 @@ public class ProjectImageController {
                    @RequestParam("title") String title,
                    @RequestParam("details") String details,
                    @RequestParam(value = "visibility", defaultValue = "T") String visibility,
-                   @RequestParam("file") MultipartFile file) {
-    service.createImage(projectId, title, details, visibility, file);
+                   @RequestParam("file") List<MultipartFile> files) {
+    service.createImages(projectId, title, details, visibility, files);
   }
 
   @GetMapping("/{projectName:.+}/{fileName:.+}")

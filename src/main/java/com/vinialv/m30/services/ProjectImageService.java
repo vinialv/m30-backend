@@ -50,35 +50,41 @@ public class ProjectImageService {
     }
     return repository.findByProjectId(projectId);
   }
-  
-  public void createImage(Long projectId, String title, String details, String visibility, MultipartFile file) {
+
+  public void createImages(Long projectId, String title, String details, String visibility, List<MultipartFile> files) {
     List<String> allowedTypes = Arrays.asList("image/webp", "image/avif", "image/png", "image/jpeg", "image/svg+xml");
-    if (!allowedTypes.contains(file.getContentType())) {
-      throw new IllegalArgumentException("Tipo de imagem não permitido. Apenas .webp, .avif, .png, .jpg e .svg são aceitos.");
-    }
-    Project project = projectRepository.findById(projectId).orElseThrow(() -> new NotFoundException("Projeto não encontrado!"));
-    try {
-      String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-      Path targetLocation = fileStorageLocation.resolve(fileName);
-      file.transferTo(targetLocation);
+    
+    Project project = projectRepository.findById(projectId)
+        .orElseThrow(() -> new NotFoundException("Projeto não encontrado!"));
 
-      String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-        .path("/v1/project-image/")
-        .path(project.getName())
-        .path("/")
-        .path(fileName)
-        .toUriString();
-      
-      ProjectImage projectImage = new ProjectImage();
-      projectImage.setTitle(title);
-      projectImage.setDetails(details);
-      projectImage.setVisibility(visibility);
-      projectImage.setUrl(fileDownloadUri);
-      projectImage.setProject(project);
+    for (MultipartFile file : files) {
+      if (!allowedTypes.contains(file.getContentType())) {
+        throw new IllegalArgumentException("Tipo de imagem não permitido: " + file.getOriginalFilename());
+      }
+        
+      try {
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        Path targetLocation = fileStorageLocation.resolve(fileName);
+        file.transferTo(targetLocation);
 
-      repository.save(projectImage);      
-    } catch (Exception e) {
-      throw new RuntimeException("Erro ao salvar arquivo: " + e.getMessage());
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+            .path("/v1/project-image/")
+            .path(project.getName())
+            .path("/")
+            .path(fileName)
+            .toUriString();
+
+        ProjectImage projectImage = new ProjectImage();
+        projectImage.setTitle(title);
+        projectImage.setDetails(details);
+        projectImage.setVisibility(visibility);
+        projectImage.setUrl(fileDownloadUri);
+        projectImage.setProject(project);
+
+        repository.save(projectImage);
+      } catch (Exception e) {
+        throw new RuntimeException("Erro ao salvar arquivo: " + e.getMessage());
+      }
     }
   }
 
