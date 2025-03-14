@@ -72,9 +72,10 @@ public class ProjectImageController {
     service.createImages(projectId, visibility, files);
   }
 
-  @GetMapping("/{projectName:.+}/{fileName:.+}")
-  public ResponseEntity<Resource> downloadFile(@PathVariable String projectName, @PathVariable String fileName, HttpServletRequest request) throws IOException {
-    String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+  @GetMapping("/{projectId}/{fileName:.+}")
+  public ResponseEntity<Resource> downloadFile(@PathVariable String projectId, @PathVariable String fileName, HttpServletRequest request) throws IOException {
+    String path = "project-" + projectId + "/" + fileName;
+    String decodedFileName = URLDecoder.decode(path, StandardCharsets.UTF_8);
     Path filePath = fileStorageLocation.resolve(decodedFileName).normalize();
     try {
       Resource resource = new UrlResource(filePath.toUri());

@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.vinialv.m30.config.FileStorageProperties;
 import com.vinialv.m30.entities.Project;
@@ -77,11 +78,16 @@ public class ProjectImageService {
         Path targetLocation = projectDir.resolve(fileName);
         file.transferTo(targetLocation);
 
-        String path = projectDir + "\\" + fileName;
+       String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+         .path("/v1/project-image/")
+         .path("/" + project.getId())
+         .path("/")
+         .path(fileName)
+         .toUriString();
 
         ProjectImage projectImage = new ProjectImage();
         projectImage.setVisibility(visibility);
-        projectImage.setPath(path);
+        projectImage.setPath(fileDownloadUri);
         projectImage.setProject(project);
 
         repository.save(projectImage);
