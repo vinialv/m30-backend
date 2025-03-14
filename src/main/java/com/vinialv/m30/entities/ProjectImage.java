@@ -30,12 +30,7 @@ public class ProjectImage {
   private Project project;
 
   @Column(nullable = false)
-  private String title;
-
-  private String details;
-
-  @Column(nullable = false)
-  private String url;
+  private String path;
 
   @Column(nullable = false, columnDefinition = "char(1) default 'T'")
   private String visibility;

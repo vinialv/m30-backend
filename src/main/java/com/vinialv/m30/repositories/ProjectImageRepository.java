@@ -8,4 +8,5 @@ import com.vinialv.m30.entities.ProjectImage;
 
 public interface ProjectImageRepository extends JpaRepository<ProjectImage, Long> {
   List<ProjectImage> findByProjectId(Long projectId);
+  Long countByProjectId(Long projectId);
 }

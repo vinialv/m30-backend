@@ -1,5 +1,7 @@
 package com.vinialv.m30.services;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -9,7 +11,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.vinialv.m30.config.FileStorageProperties;
 import com.vinialv.m30.entities.Project;
@@ -51,11 +52,20 @@ public class ProjectImageService {
     return repository.findByProjectId(projectId);
   }
 
-  public void createImages(Long projectId, String title, String details, String visibility, List<MultipartFile> files) {
+  public void createImages(Long projectId, String visibility, List<MultipartFile> files) {
     List<String> allowedTypes = Arrays.asList("image/webp", "image/avif", "image/png", "image/jpeg", "image/svg+xml");
     
     Project project = projectRepository.findById(projectId)
         .orElseThrow(() -> new NotFoundException("Projeto não encontrado!"));
+
+    Path projectDir = fileStorageLocation.resolve("project-" + projectId);
+    if (!Files.exists(projectDir)) {
+      try {
+        Files.createDirectories(projectDir);
+      } catch (IOException e) {
+        throw new RuntimeException("Erro ao criar a pasta do projeto: " + e.getMessage());
+      }
+    }
 
     for (MultipartFile file : files) {
       if (!allowedTypes.contains(file.getContentType())) {
@@ -64,21 +74,14 @@ public class ProjectImageService {
         
       try {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-        Path targetLocation = fileStorageLocation.resolve(fileName);
+        Path targetLocation = projectDir.resolve(fileName);
         file.transferTo(targetLocation);
 
-        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-            .path("/v1/project-image/")
-            .path(project.getName())
-            .path("/")
-            .path(fileName)
-            .toUriString();
+        String path = projectDir + "\\" + fileName;
 
         ProjectImage projectImage = new ProjectImage();
-        projectImage.setTitle(title);
-        projectImage.setDetails(details);
         projectImage.setVisibility(visibility);
-        projectImage.setUrl(fileDownloadUri);
+        projectImage.setPath(path);
         projectImage.setProject(project);
 
         repository.save(projectImage);
@@ -100,48 +103,53 @@ public class ProjectImageService {
   }
 
   public void deleteImage(Long id) {
-    if (!repository.existsById(id)) {
-      throw new NotFoundException("Não existe imagem com o ID informado!");
+    ProjectImage projectImage = repository.findById(id).orElseThrow(() -> new NotFoundException("Imagem não encontrada!"));
+    Long projectId = projectImage.getProject().getId();
+    Path projectDir = fileStorageLocation.resolve("project-" + projectId);
+    try {
+      Path filePath = projectDir.resolve(Paths.get(projectImage.getPath()).getFileName());
+      System.out.println("Path to file: " + filePath);
+      Files.deleteIfExists(filePath);
+
+      long remainingImages = repository.countByProjectId(id);
+      if (remainingImages == 0) {
+        try {
+          Files.deleteIfExists(projectDir);
+        } catch (IOException e) {
+          throw new RuntimeException("Erro ao excluir a pasta do projeto: " + e.getMessage());
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Erro ao excluir o arquivo: " + e.getMessage());
     }
     repository.deleteById(id);
   }
 
-  private void validateProjectImage(ProjectImage projectImage) {
-    if (projectImage.getTitle() == null) {
-      throw new IllegalArgumentException("O campo 'Título' deve ser informado!");
+  public void deleteImagesByProject(Long id) {
+    List<ProjectImage> images = repository.findByProjectId(id);
+    if (images.isEmpty()) {
+      throw new NotFoundException("Nenhuma imagem encontrada para este projeto.");
     }
-    if (projectImage.getDetails() == null) {
-      throw new IllegalArgumentException("O campo 'Detalhes' deve ser informado!");
+    Long projectId = images.get(0).getProject().getId();
+    Path projectDir = fileStorageLocation.resolve("project-" + projectId);
+    for (ProjectImage image : images) {
+      try {
+        Path filePath = projectDir.resolve(Paths.get(image.getPath()).getFileName());
+        Files.deleteIfExists(filePath);
+      } catch (IOException e) {
+        throw new RuntimeException("Erro ao excluir o arquivo: " + e.getMessage());
+      }
     }
-    if (projectImage.getUrl() == null) {
-      throw new IllegalArgumentException("O campo 'URL' deve ser informado!");
+    try {
+      Files.deleteIfExists(projectDir);
+    } catch (IOException e) {
+      throw new RuntimeException("Erro ao excluir a pasta do projeto: " + e.getMessage());
     }
-    if (projectImage.getVisibility() == null) {
-      projectImage.setVisibility("T");
-    }
-    if (!isValidUrl(projectImage.getUrl())) {
-      throw new IllegalArgumentException("URL inválida!");
-    }
-    if (projectRepository.findById(projectImage.getProject().getId()).isEmpty()) {
-      throw new IllegalArgumentException("Projeto não encontrado!");
-    }
-  }
 
-  private boolean isValidUrl(String url) {
-    String urlRegex = "^(?:https?:\\/\\/)?(w{3}\\.)?[\\w_-]+((\\.\\w{2,}){1,2})(\\/([\\w\\._-]+\\/?)*(\\?[\\w_-]+=[^\\?\\/&]*(\\&[\\w_-]+=[^\\?\\/&]*)*)?)?$";
-    return url.matches(urlRegex);
+    repository.deleteAll(images);
   }
 
   private void updateProjectImageFields(ProjectImage existingImage, ProjectImage image) {
-    if (image.getTitle() != null) {
-      existingImage.setTitle(image.getTitle());
-    }
-    if (image.getDetails() != null) {
-      existingImage.setDetails(image.getDetails());
-    }
-    if (image.getUrl() != null) {
-      existingImage.setUrl(image.getUrl());
-    }
     if (image.getVisibility() != null) {
       existingImage.setVisibility(image.getVisibility());
     }

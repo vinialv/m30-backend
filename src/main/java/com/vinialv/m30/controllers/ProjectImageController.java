@@ -67,11 +67,9 @@ public class ProjectImageController {
 
   @PostMapping("/upload/{id}")
   public void save(@PathVariable("id") Long projectId,
-                   @RequestParam("title") String title,
-                   @RequestParam("details") String details,
                    @RequestParam(value = "visibility", defaultValue = "T") String visibility,
                    @RequestParam("file") List<MultipartFile> files) {
-    service.createImages(projectId, title, details, visibility, files);
+    service.createImages(projectId, visibility, files);
   }
 
   @GetMapping("/{projectName:.+}/{fileName:.+}")
@@ -98,9 +96,14 @@ public class ProjectImageController {
     service.updateImage(id, projectImage);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/image/{id}")
   public void delete(@PathVariable("id") Long id) {
     service.deleteImage(id);
+  }
+
+  @DeleteMapping("/project/{projectId}")
+  public void deleteImagesByProject(@PathVariable("projectId") Long projectId) {
+    service.deleteImagesByProject(projectId);
   }
 
 }
