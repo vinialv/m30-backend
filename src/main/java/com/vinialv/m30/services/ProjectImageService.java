@@ -75,6 +75,7 @@ public class ProjectImageService {
         
       try {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        fileName = System.currentTimeMillis() + "-" + fileName;
         Path targetLocation = projectDir.resolve(fileName);
         file.transferTo(targetLocation);
 
@@ -112,23 +113,26 @@ public class ProjectImageService {
     ProjectImage projectImage = repository.findById(id).orElseThrow(() -> new NotFoundException("Imagem não encontrada!"));
     Long projectId = projectImage.getProject().getId();
     Path projectDir = fileStorageLocation.resolve("project-" + projectId);
+    String imageName = projectImage.getPath().substring(projectImage.getPath().lastIndexOf("/") + 1);
     try {
-      Path filePath = projectDir.resolve(Paths.get(projectImage.getPath()).getFileName());
-      System.out.println("Path to file: " + filePath);
+      Path filePath = projectDir.resolve(imageName);
       Files.deleteIfExists(filePath);
+      
+      repository.deleteById(id);
 
-      long remainingImages = repository.countByProjectId(id);
+      long remainingImages = repository.countByProjectId(projectId);
+      
+      System.out.println("IMAGENS RESTANTES NO PROJETO: " + remainingImages);
       if (remainingImages == 0) {
         try {
           Files.deleteIfExists(projectDir);
         } catch (IOException e) {
           throw new RuntimeException("Erro ao excluir a pasta do projeto: " + e.getMessage());
         }
-      }
+      } 
     } catch (IOException e) {
       throw new RuntimeException("Erro ao excluir o arquivo: " + e.getMessage());
     }
-    repository.deleteById(id);
   }
 
   public void deleteImagesByProject(Long id) {
