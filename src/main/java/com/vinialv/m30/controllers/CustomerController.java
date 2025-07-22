@@ -46,7 +46,7 @@ public class CustomerController {
   public ResponseEntity<PaginatedResponseDTO<Customer>> findAllPageable(@RequestParam(defaultValue = "1") int page, 
                                                                         @RequestParam(required = false) String search,  
                                                                         @RequestParam(required = false) String status,   
-                                                                        @PageableDefault(size = 10) Pageable pageable) {
+                                                                        @PageableDefault(size = 10) Pageable pageable) throws InterruptedException {
     Pageable adjustedPageable = PageRequest.of(Math.max(0, page - 1), pageable.getPageSize());
     Page<Customer> pageCustomer = service.findAllPageable(adjustedPageable, status, search);
     String baseUrl = "http://localhost:8080/v1/customer";
@@ -129,6 +129,8 @@ public class CustomerController {
 
     PaginatedResponseDTO<Customer> response = new PaginatedResponseDTO<>(pageCustomer.getContent(), links, meta);
     
+    //Thread.sleep(7000);
+
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 

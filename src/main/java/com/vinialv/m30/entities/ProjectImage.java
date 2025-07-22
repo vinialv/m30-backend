@@ -31,6 +31,9 @@ public class ProjectImage {
 
   @Column(nullable = false)
   private String path;
+  
+  //@Column(nullable = false)
+  private Long displayOrder;
 
   @Column(nullable = false, columnDefinition = "char(1) default 'T'")
   private String visibility;

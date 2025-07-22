@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.vinialv.m30.config.FileStorageProperties;
+import com.vinialv.m30.dto.DisplayOrderUpdate;
 import com.vinialv.m30.entities.Project;
 import com.vinialv.m30.entities.ProjectImage;
 import com.vinialv.m30.exceptions.NotFoundException;
@@ -21,6 +24,7 @@ import com.vinialv.m30.repositories.ProjectImageRepository;
 import com.vinialv.m30.repositories.ProjectRepository;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -50,7 +54,7 @@ public class ProjectImageService {
     if (projectRepository.findById(projectId).isEmpty()) {
       throw new IllegalArgumentException("Projeto não encontrado!");
     }
-    return repository.findByProjectId(projectId);
+    return repository.findByProjectIdOrderByDisplayOrder(projectId);
   }
 
   public void createImages(Long projectId, String visibility, List<MultipartFile> files) {
@@ -163,6 +167,29 @@ public class ProjectImageService {
     if (image.getVisibility() != null) {
       existingImage.setVisibility(image.getVisibility());
     }
+  }
+
+  @Transactional
+  public void reorderImages(Long projectId, List<DisplayOrderUpdate> listImages) {
+    List<Long> ids = listImages.stream()
+      .map(DisplayOrderUpdate::id)
+      .toList();
+
+    List<ProjectImage> images = repository.findAllById(ids);
+
+    boolean allMatch = images.stream()
+      .allMatch(img -> img.getProject().getId().equals(projectId));
+
+    if (!allMatch) {
+        throw new IllegalArgumentException("Uma ou mais imagens não pertencem ao projeto " + projectId);
+    }
+
+    Map<Long, Long> idToOrder = listImages.stream()
+      .collect(Collectors.toMap(DisplayOrderUpdate::id, DisplayOrderUpdate::displayOrder));
+
+    images.forEach(img -> img.setDisplayOrder(idToOrder.get(img.getId())));
+
+    repository.saveAll(images);
   }
 
 }

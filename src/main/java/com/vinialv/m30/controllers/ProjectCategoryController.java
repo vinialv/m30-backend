@@ -46,7 +46,7 @@ public class ProjectCategoryController {
   public ResponseEntity<PaginatedResponseDTO<ProjectCategory>> findAllPageable(@RequestParam(defaultValue = "1") int page, 
                                                                                @RequestParam(required = false) String search,  
                                                                                @RequestParam(required = false) String status,   
-                                                                               @PageableDefault(size = 10) Pageable pageable) {
+                                                                               @PageableDefault(size = 10) Pageable pageable) throws InterruptedException {
     Pageable adjustedPageable = PageRequest.of(Math.max(0, page - 1), pageable.getPageSize());
     Page<ProjectCategory> pageCategory = service.findAllPageable(adjustedPageable, status, search);
     String baseUrl = "http://localhost:8080/v1/project-category";
@@ -129,6 +129,8 @@ public class ProjectCategoryController {
 
     PaginatedResponseDTO<ProjectCategory> response = new PaginatedResponseDTO<>(pageCategory.getContent(), links, meta);
     
+    //Thread.sleep(3000);
+
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 

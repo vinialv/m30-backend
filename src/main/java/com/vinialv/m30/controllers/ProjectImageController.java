@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vinialv.m30.entities.ProjectImage;
 import com.vinialv.m30.services.ProjectImageService;
 import com.vinialv.m30.config.FileStorageProperties;
+import com.vinialv.m30.dto.DisplayOrderUpdate;
 
 import lombok.RequiredArgsConstructor;
 import jakarta.annotation.PostConstruct;
@@ -105,6 +106,17 @@ public class ProjectImageController {
   @DeleteMapping("/project/{projectId}")
   public void deleteImagesByProject(@PathVariable("projectId") Long projectId) {
     service.deleteImagesByProject(projectId);
+  }
+
+  @PutMapping("/project/{projectId}/images/reorder")
+  public ResponseEntity<Void> reorderImages(
+      @PathVariable Long projectId,
+      @RequestBody List<DisplayOrderUpdate> images
+  ) {
+    System.out.println("projectId: " + projectId);
+    System.out.println("images: " + images);
+    service.reorderImages(projectId, images);
+      return ResponseEntity.ok().build();
   }
 
 }
